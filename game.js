@@ -70,8 +70,14 @@ class Actor {
 
   isIntersect(actor) {
     if (actor instanceof Actor) {
-      if (actor.pos.x === this.pos.x || actor.pos.y === this.pos.y) {
+      if (actor.left === this.left && actor.right === this.right && actor.top === this.top && actor.bottom === this.bottom) {
         return false;
+      } else if (actor.left > this.left || actor.right > this.right || actor.top > this.top || actor.bottom > this.bottom) {
+        return false;
+      } else if (actor.left === this.left || actor.right === this.right || actor.top === this.top || actor.bottom === this.bottom) {
+        return false;
+      } else if (actor.left < this.left && actor.right > this.right && actor.top > this.top && actor.bottom < this.bottom) {
+        return true;
       }
     } else {
       throw new Error('actor не является Actor')
