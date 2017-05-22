@@ -76,7 +76,20 @@ class Actor {
         return false;
       } else if (actor.left === this.left || actor.right === this.right || actor.top === this.top || actor.bottom === this.bottom) {
         return false;
-      } else if (actor.left < this.left && actor.right > this.right && actor.top > this.top && actor.bottom < this.bottom) {
+      } else if (actor.left > this.left && actor.right < this.right && actor.top < this.top && actor.bottom > this.bottom) {
+        return true;
+      } else if (
+        (actor.left < this.left && actor.right < this.right && actor.top > this.top && actor.bottom > this.bottom) ||
+        (actor.left > this.left && actor.right < this.right && actor.top > this.top && actor.bottom > this.bottom) ||
+        (actor.left > this.left && actor.right > this.right && actor.top > this.top && actor.bottom > this.bottom) ||
+        (actor.left < this.left && actor.right > this.right && actor.top < this.top && actor.bottom > this.bottom) ||
+        (actor.left > this.left && actor.right > this.right && actor.top < this.top && actor.bottom > this.bottom) ||
+        (actor.left < this.left && actor.right < this.right && actor.top < this.top && actor.bottom < this.bottom) ||
+        (actor.left > this.left && actor.right < this.right && actor.top < this.top && actor.bottom < this.bottom) ||
+        (actor.left > this.left && actor.right > this.right && actor.top < this.top && actor.bottom < this.bottom)
+       ) {
+        return true;
+      } else {
         return true;
       }
     } else {
