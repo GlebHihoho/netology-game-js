@@ -84,37 +84,124 @@ class Actor {
     } else if (actor.left > this.left && actor.top > this.top && actor.right < this.right && actor.bottom < this.bottom) {
       return true;
     } else if (
-      (actor.left < this.left && actor.right < this.right && actor.top < this.top && actor.bottom < this.bottom) || // 1
-      (actor.left > this.left && actor.right < this.right && actor.top < this.top && actor.bottom < this.bottom) || // 2
-      (actor.left > this.left && actor.right > this.right && actor.top < this.top && actor.bottom < this.bottom) || // 3
-
-      (actor.left < this.left && actor.right < this.right && actor.top > this.top && actor.bottom < this.bottom) || // 4
-      (actor.left > this.left && actor.right > this.right && actor.top > this.top && actor.bottom < this.bottom) || // 5
-
-      (actor.left < this.left && actor.right < this.right && actor.top > this.top && actor.bottom > this.bottom) || // 6
-      (actor.left > this.left && actor.right < this.right && actor.top > this.top && actor.bottom > this.bottom) || // 7
-      (actor.left > this.left && actor.right > this.right && actor.top > this.top && actor.bottom > this.bottom) || // 8
-
-      (actor.left < this.left && actor.right > this.right && actor.top < this.top && actor.bottom < this.bottom) || // 9
-      (actor.left < this.left && actor.right > this.right && actor.top > this.top && actor.bottom < this.bottom) || // 10
-      (actor.left < this.left && actor.right > this.right && actor.top > this.top && actor.bottom > this.bottom) || // 11
-
-      (actor.left < this.left && actor.right < this.right && actor.top < this.top && actor.bottom > this.bottom) || // 12
-      (actor.left > this.left && actor.right < this.right && actor.top < this.top && actor.bottom > this.bottom) || // 13
-      (actor.left > this.left && actor.right > this.right && actor.top < this.top && actor.bottom > this.bottom)    // 14
+      (actor.left < this.left && actor.right > this.left) ||
+      (actor.left < this.right && actor.right > this.right) ||
+      (actor.top < this.top && actor.bottom > this.top) ||
+      (actor.top < this.bottom && actor.bottom > this.bottom)
     ) {
       return true;
     }
-
   }
 }
 
 
 
 class Level {
-  constructor(height = 0, width = 0) {
-    this.height = height;
-    this.width  = width;
+  constructor(grid = [], actors = []) {
+    this.grid = grid;
+    this.actors = actors;
+    this.height = grid.length;
+    this.status = null;
+    this.finishDelay = 1;
+  }
+
+  get width() {
+    let max = 0;
+
+    if (this.grid.length) {
+      for (let i = 0; i < this.grid.length; i++) {
+        if (max < this.grid[i].length) {
+          max = this.grid[i].length;
+        }
+      }
+    }
+
+    return max;
+  }
+
+  get player() {
+    return this.actors.filter(actor => actor.type === 'player')[0];
+  }
+
+  isFinished() {
+    if (this.status != null && this.finishDelay < 0) {
+      return true;
+    }
+
+    if (this.status != null && this.finishDelay > 0) {
+      return false;
+    }
+
+    return false;
+  }
+
+  actorAt(actor) {
+    if (!(actor instanceof Actor) || actor === undefined) {
+      throw new Error('actor не является Actor')
+    }
+
+    for (let i = 0; i < this.actors.length; i++) {
+      let other = this.actors[i];
+      if (other != actor &&
+          actor.pos.x + actor.size.x > other.pos.x &&
+          actor.pos.x < other.pos.x + other.size.x &&
+          actor.pos.y + actor.size.y > other.pos.y &&
+          actor.pos.y < other.pos.y + other.size.y)
+        return other;
+    }
+  }
+
+  obstacleAt(pos, size) {
+    let xStart = Math.floor(pos.x);
+    let xEnd   = Math.ceil(pos.x + size.x);
+    let yStart = Math.floor(pos.y);
+    let yEnd   = Math.ceil(pos.y + size.y);
+
+    if (xStart < 0 || xEnd > this.width || yStart < 0)
+      return "wall";
+    if (yEnd > this.height)
+      return "lava";
+    for (let y = yStart; y < yEnd; y++) {
+      for (let x = xStart; x < xEnd; x++) {
+        let fieldType = this.grid[y][x];
+        if (fieldType) return fieldType;
+      }
+    }
+  }
+
+  removeActor(actor) {
+    let count = 0;
+    for (let i = 0; i < this.actors.length; i++) {
+      if (this.actors[i] === actor) {
+        count = i;
+      }
+    }
+    this.actors.splice(count, 1);
+  }
+
+  noMoreActors(type) {
+    for (let i = 0; i < this.actors.length; i++) {
+      if (this.actors[i].type === type) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  playerTouched(type, actor) {
+    if (type === 'lava' || type === 'fireball') {
+      this.status = 'lost';
+    }
+
+    if (type === 'coin') {
+      this.actors = this.actors.filter(other => other !== actor);
+
+      if (!this.actors.some(actor => actor.type === "coin")) {
+        this.status = "won";
+      }
+    }
   }
 }
+
+
 
