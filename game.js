@@ -94,8 +94,6 @@ class Actor {
   }
 }
 
-
-
 class Level {
   constructor(grid = [], actors = []) {
     this.grid = grid;
@@ -203,5 +201,177 @@ class Level {
   }
 }
 
+class Player {
+  constructor(pos = new Vector(0, 0), size = new Vector(0.8, 1.5)) {
+    this.pos = pos.plus(new Vector(0, -0.5));
+    this.size = size;
+    this.type = 'player';
+  }
+}
 
+class Fireball extends Actor {
+  constructor(pos, speed) {
+    super(pos, speed);
 
+    this.pos   = pos;
+    this.speed = speed;
+  }
+
+  get type() {
+    return 'fireball'
+  }
+
+  getNextPosition(time = 1) {
+    if (this.speed) {
+      let newPosX = this.pos.x + this.speed.x * time;
+      let newPosY = this.pos.y + this.speed.y * time;
+      return new Vector(newPosX, newPosY);
+    }
+
+    return this.pos;
+  }
+
+  handleObstacle() {
+    this.speed.x = -this.speed.x;
+    this.speed.y = -this.speed.y;
+  }
+
+  act(time, level) {
+    let newPos = getNextPosition(time);
+
+    if (this.isIntersect(level)) {
+      handleObstacle();
+    } else {
+      this.pos = newPos;
+    }
+  }
+}
+
+class HorizontalFireball extends Fireball {
+  constructor(vector) {
+    super(vector);
+
+    this.size = new Vector(1, 1);
+    this.speed = new Vector(2, 0);
+  }
+}
+
+class VerticalFireball extends Fireball {
+  constructor(vector) {
+    super(vector);
+
+    this.size = new Vector(1, 1);
+    this.speed = new Vector(0, 2);
+  }
+}
+
+class FireRain extends Fireball {
+  constructor(vector) {
+    super(vector);
+
+    this.speed = new Vector(0, 3);
+  }
+
+  handleObstacle() {
+    let pos = this.pos;
+
+    if (this.isIntersect(vector)) {
+      this.pos = pos;
+    }
+  }
+}
+
+function random(min, max) {
+  let rand = min + Math.random() * (max - min);
+
+  return rand;
+}
+
+const phaseStart = 0;
+const phaseFinish = 2 * Math.PI;
+
+class Coin extends Actor {
+  constructor(pos) {
+    super(pos);
+
+    this.size = new Vector(0.6, 0.6);
+    this.pos  = this.pos.plus(new Vector(0.2, 0.1));
+    this.spring = random(phaseStart, phaseFinish);
+    this.springDist = 0.07;
+    this.springSpeed = 8;
+  }
+
+  get type() {
+    return 'coin';
+  }
+
+  updateSpring(time = 1) {
+    this.spring = this.spring + this.springSpeed * time;
+  }
+
+  getSpringVector() {
+    let y = Math.sin(this.spring) * this.springDist;
+    return new Vector(0, y);
+  }
+
+  getNextPosition(time = 1) {
+    this.updateSpring(time);
+    // this.pos.plus(new Vector(this.getSpringVector()));
+
+    return new Vector(this.pos.x);
+  }
+
+  act(time) {
+    this.pos = this.getNextPosition(time);
+  }
+}
+
+class LevelParser {
+  constructor(symbol) {
+    this.symbol = symbol;
+  }
+
+  actorFromSymbol(str) {
+    if (!this.symbol) {
+      return this.symbol = undefined;
+    }
+
+    return this.symbol[str];
+  }
+
+  obstacleFromSymbol(str) {
+    if (str === 'x') return 'wall';
+    if (str === '!') return 'lava';
+    return undefined;
+  }
+
+  createGrid(arrString) {
+    if (!arrString.length) return [];
+
+    return arrString.map(char => {
+      return char.split('').map(ch => this.obstacleFromSymbol(ch));
+    })
+  }
+
+  createActors(plan) {
+    let arr = []
+
+    // plan.forEach(row => {
+    //   row.split('').filter(cell => {
+    //     if (cell === '@' || cell === 'v'|| cell === '=' || cell === '|') {
+    //       arr.push(cell)
+    //     }
+    //   })
+    // })
+
+    for (let i = 0; i < plan.length; i++) {
+      for (let j = 0; j < plan[i].length; j++) {
+        if (plan[i][j] === '@' || plan[i][j] === 'v' || plan[i][j] === '=' || plan[i][j] === '|') {
+          arr.push({sumbol : plan[i][j], coord : { x : j , y : i }})
+        }
+      }
+    }
+
+    return arr;
+  }
+}
