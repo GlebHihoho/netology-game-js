@@ -354,24 +354,26 @@ class LevelParser {
   }
 
   createActors(plan) {
-    let arr = []
-
-    // plan.forEach(row => {
-    //   row.split('').filter(cell => {
-    //     if (cell === '@' || cell === 'v'|| cell === '=' || cell === '|') {
-    //       arr.push(cell)
-    //     }
-    //   })
-    // })
+    let arrActor = []
 
     for (let i = 0; i < plan.length; i++) {
       for (let j = 0; j < plan[i].length; j++) {
-        if (plan[i][j] === '@' || plan[i][j] === 'v' || plan[i][j] === '=' || plan[i][j] === '|') {
-          arr.push({sumbol : plan[i][j], coord : { x : j , y : i }})
+        for (let symb in this.symbol) {
+          if (symb === plan[i][j]) {
+            let objActor = new this.symbol[symb](new Vector(j, i));
+
+            arrActor.push(objActor);
+          }
         }
       }
     }
 
-    return arr;
+    return arrActor;
+  }
+
+  parse(plan) {
+    return new Level(plan, this.createActors(plan))
   }
 }
+
+
