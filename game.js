@@ -201,11 +201,16 @@ class Level {
   }
 }
 
-class Player {
+class Player extends Actor {
   constructor(pos = new Vector(0, 0), size = new Vector(0.8, 1.5)) {
+    super(pos, size)
+
     this.pos = pos.plus(new Vector(0, -0.5));
     this.size = size;
-    this.type = 'player';
+  }
+
+  get type() {
+    return 'player';
   }
 }
 
@@ -237,12 +242,12 @@ class Fireball extends Actor {
   }
 
   act(time, level) {
-    let newPos = getNextPosition(time);
+    let newPos = this.getNextPosition(time);
 
-    if (this.isIntersect(level)) {
-      handleObstacle();
+    if (!level.obstacleAt(newPos, this.size)) {
+      this.pos = this.getNextPosition(time);
     } else {
-      this.pos = newPos;
+      this.handleObstacle();
     }
   }
 }
@@ -269,13 +274,17 @@ class FireRain extends Fireball {
   constructor(vector) {
     super(vector);
 
+    this.vector = vector;
+    this.size = new Vector(1, 1);
     this.speed = new Vector(0, 3);
   }
 
   handleObstacle() {
     let pos = this.pos;
 
-    if (this.isIntersect(vector)) {
+    if (this.isIntersect(this.vector)) {
+
+    } else {
       this.pos = pos;
     }
   }
@@ -316,9 +325,7 @@ class Coin extends Actor {
 
   getNextPosition(time = 1) {
     this.updateSpring(time);
-    // this.pos.plus(new Vector(this.getSpringVector()));
-
-    return new Vector(this.pos.x);
+    return this.pos.plus(this.getSpringVector());
   }
 
   act(time) {
@@ -372,7 +379,7 @@ class LevelParser {
   }
 
   parse(plan) {
-    return new Level(plan, this.createActors(plan))
+    return new Level(this.createGrid(plan), this.createActors(plan))
   }
 }
 
