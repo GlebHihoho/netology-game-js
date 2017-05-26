@@ -150,6 +150,7 @@ class Level {
   }
 
   obstacleAt(pos, size) {
+    console.log(size)
     let xStart = Math.floor(pos.x);
     let xEnd   = Math.ceil(pos.x + size.x);
     let yStart = Math.floor(pos.y);
@@ -215,11 +216,12 @@ class Player extends Actor {
 }
 
 class Fireball extends Actor {
-  constructor(pos, speed) {
-    super(pos, speed);
+  constructor(pos, size, speed) {
+    super(pos, size, speed);
 
-    this.pos   = pos;
-    this.speed = speed;
+    this.size = new Vector(1, 1);
+    this.speed = size;
+    this.pos = pos;
   }
 
   get type() {
@@ -248,7 +250,10 @@ class Fireball extends Actor {
       this.pos = this.getNextPosition(time);
     } else {
       this.handleObstacle();
+      level.obstacleAt(newPos, this.size);
     }
+
+    // level.obstacleAt(newPos, this.size)
   }
 }
 
