@@ -12,6 +12,14 @@ class Vector {
     } else {
       throw new Error('Вы передали неправильные данные');
     }
+
+    // здесь и далее лучше пишите вот так:
+    //
+    // if (!(vector instanceof Vector)) {
+    //   throw new Error('Вы передали неправильные данные');
+    // }
+    //
+    // return new Vector(this.x + vector.x, this.y + vector.y);
   }
 
 times(n){
@@ -22,6 +30,7 @@ times(n){
 
 class Actor {
   constructor(pos = new Vector(0, 0), size = new Vector(1, 1), speed = new Vector(0, 0)) {
+    // здесь сначала проверьте все аргументы, а потом просто присвойте
     if (pos instanceof Vector) {
       this.pos = pos;
     } else {
@@ -70,6 +79,8 @@ class Actor {
       throw new Error('actor не является Actor')
     }
 
+    // тут должна быть простая проверка если переданный объект выше - false, если ниже - false, левее - false, правее - false, иначе true
+    // и должна быть проверка, что передали тот же объект (результат - false)
     if (actor.left === this.left && actor.right === this.right && actor.top === this.top && actor.bottom === this.bottom) {
       return false;
     } else if (actor.right < this.left || actor.bottom < this.top && actor.left < this.right || actor.top > this.bottom) {
@@ -93,6 +104,7 @@ class Actor {
 
 class Level {
   constructor(grid = [], actors = []) {
+    // тут лучше создать компии массивов
     this.grid = grid;
     this.actors = actors;
     this.height = grid.length;
@@ -100,6 +112,7 @@ class Level {
     this.finishDelay = 1;
   }
 
+  // лучше посчитать этот один раз в конструкторе и возвращать здесь сохранённое значение, чтобы не считать каждый раз
   get width() {
     let max = 0;
 
@@ -115,10 +128,12 @@ class Level {
   }
 
   get player() {
+    // лучше использовать метод find
     return this.actors.filter(actor => actor.type === 'player')[0];
   }
 
   isFinished() {
+    // упростите метод
     if (this.status != null && this.finishDelay < 0) {
       return true;
     }
@@ -131,13 +146,16 @@ class Level {
   }
 
   actorAt(actor) {
+    // проверка на undefined - лишняя
     if (!(actor instanceof Actor) || actor === undefined) {
       throw new Error('actor не является Actor')
     }
 
     for (let i = 0; i < this.actors.length; i++) {
       let other = this.actors[i];
+      // !==
       if (other != actor &&
+          // здесь нужно использовать actor.height и actor.width
           actor.pos.x + actor.size.x > other.pos.x &&
           actor.pos.x < other.pos.x + other.size.x &&
           actor.pos.y + actor.size.y > other.pos.y &&
@@ -153,6 +171,7 @@ class Level {
     let yStart = Math.floor(pos.y);
     let yEnd   = Math.ceil(pos.y + size.y);
 
+    // лучше не опускайте фигурные скобки у if
     if (xStart < 0 || xEnd > this.width || yStart < 0)
       return "wall";
     if (yEnd > this.height)
@@ -166,7 +185,9 @@ class Level {
   }
 
   removeActor(actor) {
+    // count не совсем корректное название переменной, это index на самом деле
     let count = 0;
+    // тут лучше использовать метод findIndex
     for (let i = 0; i < this.actors.length; i++) {
       if (this.actors[i] === actor) {
         count = i;
@@ -176,6 +197,7 @@ class Level {
   }
 
   noMoreActors(type) {
+    // лучше через метод some
     for (let i = 0; i < this.actors.length; i++) {
       if (this.actors[i].type === type) {
         return false;
@@ -192,6 +214,7 @@ class Level {
     if (type === 'coin') {
       this.actors = this.actors.filter(other => other !== actor);
 
+      // noMoreActors же
       if (!this.actors.some(actor => actor.type === "coin")) {
         this.status = "won";
       }
@@ -222,6 +245,7 @@ class Fireball extends Actor {
   }
 
   getNextPosition(time = 1) {
+    // лучше обратить условие, чтобы уменьшить вложенность
     if (this.speed) {
       return this.pos.plus(this.speed.times(time));
     }
@@ -231,7 +255,7 @@ class Fireball extends Actor {
   handleObstacle() {
     this.speed = this.speed.times(-1);
   }
-
+// помните о форматировании
  act(time, level) {
     let newPos = this.getNextPosition(time);
     if (level.obstacleAt(newPos, this.size)) {
@@ -245,7 +269,7 @@ class Fireball extends Actor {
 class HorizontalFireball extends Fireball {
   constructor(vector) {
     super(vector);
-
+    // должно присваиваться в базовом конструкторе
     this.size = new Vector(1, 1);
     this.speed = new Vector(2, 0);
   }
@@ -254,7 +278,7 @@ class HorizontalFireball extends Fireball {
 class VerticalFireball extends Fireball {
   constructor(vector) {
     super(vector);
-
+    // должно присваиваться в базовом конструкторе
     this.size = new Vector(1, 1);
     this.speed = new Vector(0, 2);
   }
@@ -263,6 +287,7 @@ class VerticalFireball extends Fireball {
 class FireRain extends Fireball {
   constructor(pos) {
     super(pos, new Vector(0, 3));
+    // size должно присваиваться через базовый конструктор
     this.size = new Vector(1, 1);
     this.oldPos = pos;
   }
@@ -271,6 +296,7 @@ class FireRain extends Fireball {
   }
 
   handleObstacle() {
+    // лучше не опускайте фигурные скобки у if
     if (this.pos) this.pos = this.oldPos;
   }
 }
@@ -288,6 +314,7 @@ class Coin extends Actor {
   constructor(pos) {
     super(pos);
 
+    // базовый конструктор
     this.size = new Vector(0.6, 0.6);
     this.pos  = this.pos.plus(new Vector(0.2, 0.1));
     this.spring = random(phaseStart, phaseFinish);
@@ -324,6 +351,7 @@ class LevelParser {
   }
 
   actorFromSymbol(str) {
+    // это лишняя проверка, лучше инициализировать symbol в констукторе
     if (!this.symbol) {
       return this.symbol = undefined;
     }
@@ -332,12 +360,14 @@ class LevelParser {
   }
 
   obstacleFromSymbol(str) {
+    // здесь похоже лучше использовать switch
     if (str === 'x') return 'wall';
     if (str === '!') return 'lava';
     return undefined;
   }
 
   createGrid(arrString) {
+    // эту проверку можно убрать
     if (!arrString.length) return [];
 
     return arrString.map(char => {
@@ -350,10 +380,11 @@ class LevelParser {
 
     for (let i = 0; i < plan.length; i++) {
       for (let j = 0; j < plan[i].length; j++) {
+        // здесь нужно использовать actorFromSymbol
         for (let symb in this.symbol) {
           if (symb === plan[i][j]) {
             let objActor = new this.symbol[symb](new Vector(j, i));
-
+            // тут должна быть проверка, что objActor это Actor
             arrActor.push(objActor);
           }
         }
