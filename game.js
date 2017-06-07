@@ -77,6 +77,8 @@ class Actor {
 class Level {
   constructor(grid = [], actors = []) {
     // тут лучше создать компии массивов
+
+    // Глеб : не совсем понятно что вы имеете ввиду
     this.grid = grid;
     this.actors = actors;
     this.height = grid.length;
@@ -104,31 +106,11 @@ class Level {
   }
 
   isFinished() {
-    // упростите метод
-    if (this.status != null && this.finishDelay < 0) {
-      return true;
-    } else if (this.status != null && this.finishDelay > 0) {
-      return false;
-    } else {
-      return false;
-    }
+    return this.status !== null && this.finishDelay < 0;
   }
 
-  actorAt(actor) {
-    if (!(actor instanceof Actor)) {
-      throw new Error('actor не является Actor')
-    }
-
-    for (let i = 0; i < this.actors.length; i++) {
-      let other = this.actors[i];
-      if (other !== actor &&
-          // здесь нужно использовать actor.height и actor.width
-          actor.pos.x + actor.size.x > other.pos.x &&
-          actor.pos.x < other.pos.x + other.size.x &&
-          actor.pos.y + actor.size.y > other.pos.y &&
-          actor.pos.y < other.pos.y + other.size.y)
-        return other;
-    }
+  actorAt(item) {
+    return this.actors.find(actor => actor.isIntersect(item));
   }
 
   obstacleAt(pos, size) {
@@ -167,13 +149,7 @@ class Level {
   }
 
   noMoreActors(type) {
-    // лучше через метод some
-    for (let i = 0; i < this.actors.length; i++) {
-      if (this.actors[i].type === type) {
-        return false;
-      }
-    }
-    return true;
+    return !this.actors.some(actor => actor.type === type);
   }
 
   playerTouched(type, actor) {
@@ -224,14 +200,14 @@ class Fireball extends Actor {
   handleObstacle() {
     this.speed = this.speed.times(-1);
   }
-// помните о форматировании
+
   act(time, level) {
     let newPos = this.getNextPosition(time);
     if (level.obstacleAt(newPos, this.size)) {
-      this.handleObstacle();
-    } else {
-      this.pos = newPos;
+      return this.handleObstacle();
     }
+
+    return this.pos = newPos;
   }
 }
 
@@ -315,12 +291,9 @@ class LevelParser {
   }
 
   actorFromSymbol(str) {
-    // это лишняя проверка, лучше инициализировать symbol в констукторе
-    if (!this.symbol) {
-      return this.symbol = undefined;
+    if (this.symbol) {
+      return this.symbol[str];
     }
-
-    return this.symbol[str];
   }
 
   obstacleFromSymbol(str) {
@@ -338,22 +311,21 @@ class LevelParser {
   }
 
   createActors(plan) {
-    let arrActor = [];
+    let actors = [];
+    if (this.symbol === undefined) return [];
 
-    for (let i = 0; i < plan.length; i++) {
-      for (let j = 0; j < plan[i].length; j++) {
-        // здесь нужно использовать actorFromSymbol
-        for (let symb in this.symbol) {
-          if (symb === plan[i][j]) {
-            let objActor = new this.symbol[symb](new Vector(j, i));
-            // тут должна быть проверка, что objActor это Actor
-            arrActor.push(objActor);
+    for (let x = 0; x < plan.length; x++) {
+      for (let y = 0; y < plan[x].length; y++) {
+
+        if (typeof this.symbol[plan[x][y]] === 'function') {
+          let actor = new this.symbol[plan[x][y]](new Vector(y, x));
+          if (actor instanceof Actor) {
+            actors.push(actor);
           }
         }
       }
     }
-
-    return arrActor;
+    return actors;
   }
 
   parse(plan) {
