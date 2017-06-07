@@ -76,14 +76,24 @@ class Actor {
 
 class Level {
   constructor(grid = [], actors = []) {
-    // тут лучше создать компии массивов
+    let copyGrid   = grid.slice();
+    let copyActors = actors.slice();
 
-    // Глеб : не совсем понятно что вы имеете ввиду
-    this.grid = grid;
-    this.actors = actors;
-    this.height = grid.length;
+    this.grid = copyGrid;
+    this.actors = copyActors;
+    this.height = copyGrid.length;
     this.status = null;
     this.finishDelay = 1;
+
+    // this.max = 0;
+    // if (this.grid.length) {
+    //   for (let i = 0; i < this.grid.length; i++) {
+    //     if (this.max < this.grid[i].length) {
+    //       this.max = this.grid[i].length;
+    //     }
+    //   }
+    // }
+
   }
 
   // лучше посчитать этот один раз в конструкторе и возвращать здесь сохранённое значение, чтобы не считать каждый раз
