@@ -82,30 +82,13 @@ class Level {
     this.status = null;
     this.finishDelay = 1;
 
-    // this.max = 0;
-    // if (this.grid.length) {
-    //   for (let i = 0; i < this.grid.length; i++) {
-    //     if (this.max < this.grid[i].length) {
-    //       this.max = this.grid[i].length;
-    //     }
-    //   }
-    // }
+    if (this.height !== 0) {
+      let arrLength = this.grid.map(element => element.length);
 
-  }
-
-  // лучше посчитать этот один раз в конструкторе и возвращать здесь сохранённое значение, чтобы не считать каждый раз
-  get width() {
-    let max = 0;
-
-    if (this.grid.length) {
-      for (let i = 0; i < this.grid.length; i++) {
-        if (max < this.grid[i].length) {
-          max = this.grid[i].length;
-        }
-      }
+      this.width = Math.max.apply(null, arrLength);
+    } else {
+      this.width = 0;
     }
-
-    return max;
   }
 
   get player() {
@@ -121,7 +104,6 @@ class Level {
   }
 
   obstacleAt(pos, size) {
-    console.log(size)
     let xStart = Math.floor(pos.x);
     let xEnd   = Math.ceil(pos.x + size.x);
     let yStart = Math.floor(pos.y);
