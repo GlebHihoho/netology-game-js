@@ -76,11 +76,8 @@ class Actor {
 
 class Level {
   constructor(grid = [], actors = []) {
-    let copyGrid   = grid.slice();
-    let copyActors = actors.slice();
-
-    this.grid = copyGrid;
-    this.actors = copyActors;
+    this.grid = grid.slice();
+    this.actors = actors.slice();
     this.height = copyGrid.length;
     this.status = null;
     this.finishDelay = 1;
