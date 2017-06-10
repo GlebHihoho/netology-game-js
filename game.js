@@ -8,6 +8,7 @@ class Vector {
 
   plus(vector) {
     if (!(vector instanceof Vector)) {
+      // лучше писать более понятные сообщения об ошибках вроде "vector не является объектом класса Vector"
       throw new Error('Вы передали неправильные данные');
     }
 
@@ -22,6 +23,7 @@ class Vector {
 
 class Actor {
   constructor(pos = new Vector(0, 0), size = new Vector(1, 1), speed = new Vector(0, 0)) {
+    // сложно воспринимается, лучше сделайте 3 if с понятными сообщениями
     if (
         !(
           pos   instanceof Vector &&
@@ -62,14 +64,16 @@ class Actor {
   }
 
   isIntersect(actor) {
+    // лишняя проверка длины arguments
     if (!(actor instanceof Actor && arguments.length != 0)) {
       throw new Error('actor не является Actor')
-    };
+    }; // точка с запятой тут не нужны
 
     // если разбить на не несколько if будет понятнее
 
     // Глеб: не совсем понятно как разбить этот if на несколько, ведь они должны срабарывать вместе
-
+    // Игорь: обратите условие и напишите последовательно 5 if
+    // первым лучше сравнивать actor === this - это самая быстрая проверка
     if (
       actor.left    < this.right &&
       actor.right   > this.left &&
@@ -92,6 +96,8 @@ class Level {
     this.status = null;
     this.finishDelay = 1;
 
+    // а попробуйте всё что ниже записать в одну строчку :)
+    // this.width = ...
     if (this.height !== 0) {
       let lengthArr = this.grid.map(element => element.length);
 
@@ -139,6 +145,7 @@ class Level {
   }
 
   removeActor(actor) {
+    // есть метод findIndex - лучше использовать его
     let findIndex = 0;
 
     for (let i = 0; i < this.actors.length; i++) {
@@ -189,6 +196,7 @@ class LevelParser {
   }
 
   createGrid(plan) {
+    // если вызвать createGrid без параметров возникнет ошибка
     if (!plan.length) {
       return [];
     }
@@ -201,10 +209,13 @@ class LevelParser {
   createActors(plan) {
     let actors = [];
 
+    // лучше в конструкторе задать symbol значение {} если ничего не передали
+    // и убрать такие проверки
     if (!this.symbol) {
       return [];
     }
 
+    // попробуйте использовать здесь 2 forEach, а ещё лучше reduce
     for (let x = 0; x < plan.length; x++) {
       for (let y = 0; y < plan[x].length; y++) {
         let cell = this.symbol[plan[x][y]];
@@ -250,6 +261,7 @@ class Fireball extends Actor {
     // лучше обратить условие, чтобы уменьшить вложенность
 
     // Глеб: что-то я туплю в этом месте)
+    // Игорь: тут можно вообще убрать проверку, потому что по-умолчанию скорость равна 0
     if (this.speed) {
       return this.pos.plus(this.speed.times(time));
     }
@@ -273,9 +285,14 @@ class Fireball extends Actor {
       //  this.handleObstacle();
       // }
       // return this.pos = newPos;
+      // Игорь: должно быть 2 строки
+      // this.handleObstacle();
+      // return;
+
       return this.handleObstacle();
     }
 
+    // тут return не нужен - функция не возращает значение
     return this.pos = newPos;
   }
 }
@@ -283,6 +300,7 @@ class Fireball extends Actor {
 class HorizontalFireball extends Fireball {
   constructor(pos) {
     super(pos, new Vector(2, 0));
+    // лишнее - у всех шаровых пмолний одинаковый размер
     this.size = new Vector(1, 1);
   }
 }
@@ -290,6 +308,7 @@ class HorizontalFireball extends Fireball {
 class VerticalFireball extends Fireball {
   constructor(pos) {
     super(pos, new Vector(0, 2));
+    // лишнее - у всех шаровых пмолний одинаковый размер
     this.size = new Vector(1, 1);
   }
 }
@@ -297,10 +316,12 @@ class VerticalFireball extends Fireball {
 class FireRain extends Fireball {
   constructor(pos) {
     super(pos, new Vector(0, 3));
+    // лишнее - у всех шаровых пмолний одинаковый размер
     this.size = new Vector(1, 1);
     this.oldPos = pos;
   }
 
+  // это уже объявлено в базовом классе
   get type() {
     return 'fireball'
   }
@@ -330,6 +351,8 @@ class Coin extends Actor {
     // метод супер вызывает конструктор базового класса.
     // как мне в супер передать метод plus.
     // или я не о том думаю?)
+    // Игорь: вам не нужно передавать метод,
+    // вам нужно передать результат вызова этого метода
     this.pos  = this.pos.plus(new Vector(0.2, 0.1));
     this.post = this.pos;
     this.spring = random(phaseStart, phaseFinish);
@@ -362,7 +385,9 @@ class Coin extends Actor {
 
 // если собрать монетку после столкновения с фаерболом, то уровень всё расно считается выигранным
 // Gleb : ну это фича такая)
+// Игорь: не
 
+// Нужно использовать функцию loadLevels (см. описание) она сама загрузит уровни
 const schemas = [
   [
     "                       ",
