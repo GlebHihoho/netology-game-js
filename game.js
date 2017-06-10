@@ -325,6 +325,11 @@ class Coin extends Actor {
   constructor(pos) {
     super(pos, new Vector(0.6, 0.6));
     // должно задаваться через конструктор базового класса
+
+    // Gleb: я что-то теряюсь в это моменте.
+    // метод супер вызывает конструктор базового класса.
+    // как мне в супер передать метод plus.
+    // или я не о том думаю?)
     this.pos  = this.pos.plus(new Vector(0.2, 0.1));
     this.post = this.pos;
     this.spring = random(phaseStart, phaseFinish);
