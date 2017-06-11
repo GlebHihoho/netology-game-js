@@ -8,7 +8,7 @@ class Vector {
 
   plus(vector) {
     if (!(vector instanceof Vector)) {
-      throw new Error('Вы передали неправильные данные');
+      throw new Error('vector не является объектом класса Vector');
     }
 
     return new Vector(this.x + vector.x, this.y + vector.y);
@@ -22,14 +22,17 @@ class Vector {
 
 class Actor {
   constructor(pos = new Vector(0, 0), size = new Vector(1, 1), speed = new Vector(0, 0)) {
-    if (
-        !(
-          pos   instanceof Vector &&
-          size  instanceof Vector &&
-          speed instanceof Vector
-        )
-    ) {
-      throw new Error('pos / size / speed не является vector')
+
+    if (!(pos instanceof Vector)) {
+      throw new Error('pos не является объектом класса Vector')
+    }
+
+    if (!(size instanceof Vector)) {
+      throw new Error('size не является объектом класса Vector')
+    }
+
+    if (!(speed instanceof Vector)) {
+      throw new Error('speed не является объектом класса Vector')
     }
 
     this.pos   = pos;
@@ -62,25 +65,31 @@ class Actor {
   }
 
   isIntersect(actor) {
-    if (!(actor instanceof Actor && arguments.length != 0)) {
+    if (!(actor instanceof Actor)) {
       throw new Error('actor не является Actor')
-    };
-
-    // если разбить на не несколько if будет понятнее
-
-    // Глеб: не совсем понятно как разбить этот if на несколько, ведь они должны срабарывать вместе
-
-    if (
-      actor.left    < this.right &&
-      actor.right   > this.left &&
-      actor.top     < this.bottom &&
-      actor.bottom  > this.top &&
-      actor !== this
-    ) {
-      return true;
     }
 
-    return false;
+    if (!(actor !== this)) {
+      return false;
+    }
+
+    if (!(actor.left < this.right)) {
+      return false;
+    }
+
+    if (!(actor.right > this.left)) {
+      return false;
+    }
+
+    if (!(actor.top < this.bottom)) {
+      return false;
+    }
+
+    if (!(actor.bottom > this.top)) {
+      return false;
+    }
+
+    return true;
   }
 }
 
@@ -93,9 +102,7 @@ class Level {
     this.finishDelay = 1;
 
     if (this.height !== 0) {
-      let lengthArr = this.grid.map(element => element.length);
-
-      this.width = Math.max(...lengthArr);
+      this.width = Math.max(...this.grid.map(element => element.length));
     } else {
       this.width = 0;
     }
@@ -139,13 +146,7 @@ class Level {
   }
 
   removeActor(actor) {
-    let findIndex = 0;
-
-    for (let i = 0; i < this.actors.length; i++) {
-      if (this.actors[i] === actor) {
-        findIndex = i;
-      }
-    }
+    let findIndex = this.actors.findIndex(elem => elem === actor);
 
     this.actors.splice(findIndex, 1);
   }
@@ -160,7 +161,7 @@ class Level {
     }
 
     if (type === 'coin') {
-      this.actors = this.actors.filter(other => other !== actor);
+      this.removeActor(actor);
 
       if (this.noMoreActors('coin')) {
         this.status = "won";
@@ -170,7 +171,7 @@ class Level {
 }
 
 class LevelParser {
-  constructor(symbol) {
+  constructor(symbol = {}) {
     this.symbol = symbol;
   }
 
@@ -201,10 +202,8 @@ class LevelParser {
   createActors(plan) {
     let actors = [];
 
-    if (!this.symbol) {
-      return [];
-    }
-
+    // попробуйте использовать здесь 2 forEach, а ещё лучше reduce
+    // GLeb : пробовал так делать с самого начала, но что-то не пошло совсем
     for (let x = 0; x < plan.length; x++) {
       for (let y = 0; y < plan[x].length; y++) {
         let cell = this.symbol[plan[x][y]];
@@ -226,10 +225,8 @@ class LevelParser {
 }
 
 class Player extends Actor {
-  constructor(pos) {
-    super(pos, new Vector(0.8, 1.5));
-
-    this.pos = this.pos.plus(new Vector(0, -0.5));
+  constructor(pos = new Vector(0, 0)) {
+    super(pos.plus(new Vector(0, -0.5)), new Vector(0.8, 1.5));
   }
 
   get type() {
@@ -247,14 +244,8 @@ class Fireball extends Actor {
   }
 
   getNextPosition(time = 1) {
-    // лучше обратить условие, чтобы уменьшить вложенность
-
-    // Глеб: что-то я туплю в этом месте)
-    if (this.speed) {
-      return this.pos.plus(this.speed.times(time));
-    }
-    return this.pos;
- }
+    return this.pos.plus(this.speed.times(time));
+  }
 
   handleObstacle() {
     this.speed = this.speed.times(-1);
@@ -264,45 +255,30 @@ class Fireball extends Actor {
     let newPos = this.getNextPosition(time);
 
     if (level.obstacleAt(newPos, this.size)) {
-      // лучше не писать return с функцией которая ничего не возвращает
-      // может показаться, что там есть какой-то результат
-      // лучше 2 строчки - вызов функции и return;
-
-      // Gleb : я понял что вы хотите сделать. но из-за этих изменений тесты выдают ошибку
-      // if (level.obstacleAt(newPos, this.size)) {
-      //  this.handleObstacle();
-      // }
-      // return this.pos = newPos;
-      return this.handleObstacle();
+      this.handleObstacle();
+      return;
     }
 
-    return this.pos = newPos;
+    this.pos = newPos;
   }
 }
 
 class HorizontalFireball extends Fireball {
   constructor(pos) {
     super(pos, new Vector(2, 0));
-    this.size = new Vector(1, 1);
   }
 }
 
 class VerticalFireball extends Fireball {
   constructor(pos) {
     super(pos, new Vector(0, 2));
-    this.size = new Vector(1, 1);
   }
 }
 
 class FireRain extends Fireball {
   constructor(pos) {
     super(pos, new Vector(0, 3));
-    this.size = new Vector(1, 1);
     this.oldPos = pos;
-  }
-
-  get type() {
-    return 'fireball'
   }
 
   handleObstacle() {
@@ -312,25 +288,14 @@ class FireRain extends Fireball {
   }
 }
 
-function random(min, max) {
-  let rand = min + Math.random() * (max - min);
-
-  return rand;
-}
+const random = (min, max) => Math.floor((max - min) * Math.random()) + min;
 
 const phaseStart  = 0;
 const phaseFinish = 2 * Math.PI;
 
 class Coin extends Actor {
-  constructor(pos) {
-    super(pos, new Vector(0.6, 0.6));
-    // должно задаваться через конструктор базового класса
-
-    // Gleb: я что-то теряюсь в это моменте.
-    // метод супер вызывает конструктор базового класса.
-    // как мне в супер передать метод plus.
-    // или я не о том думаю?)
-    this.pos  = this.pos.plus(new Vector(0.2, 0.1));
+  constructor(pos = new Vector(0, 0)) {
+    super(pos.plus(new Vector(0.2, 0.1)), new Vector(0.6, 0.6));
     this.post = this.pos;
     this.spring = random(phaseStart, phaseFinish);
     this.springDist = 0.07;
@@ -362,104 +327,10 @@ class Coin extends Actor {
 
 // если собрать монетку после столкновения с фаерболом, то уровень всё расно считается выигранным
 // Gleb : ну это фича такая)
+// Игорь: не
+// Gleb : но логика окончания уровня и уменьшением персонажа описана в файле app.js
+//        я же работаю в game.js.
 
-const schemas = [
-  [
-    "                       ",
-    "                       ",
-    "                       ",
-    "                       ",
-    "                       ",
-    "   xxx     x w         ",
-    "  o                 o  ",
-    "  x             x = x  ",
-    "  x          o o    x  ",
-    "  x  @    *  xxxxx  x  ",
-    "  xxxxx             x  ",
-    "      x!!!!!!!!!!!!!x  ",
-    "      xxxxxxxxxxxxxxx  ",
-    "                       "
-  ],
-  [
-    "     v                 ",
-    "                       ",
-    "                       ",
-    "                       ",
-    "                       ",
-    "  |                    ",
-    "  o                 o  ",
-    "  x               = x  ",
-    "  x          o o    x  ",
-    "  x  @       xxxxx  x  ",
-    "  xxxxx             x  ",
-    "      x!!!!!!!!!!!!!x  ",
-    "      xxxxxxxxxxxxxxx  ",
-    "                       "
-  ],
-  [
-    "        |           |  ",
-    "                       ",
-    "                       ",
-    "                       ",
-    "                       ",
-    "                       ",
-    "                       ",
-    "                       ",
-    "                       ",
-    "     |                 ",
-    "                       ",
-    "         =      |      ",
-    " @ |  o            o   ",
-    "xxxxxxxxx!!!!!!!xxxxxxx",
-    "                       "
-  ],
-  [
-    "                       ",
-    "                       ",
-    "                       ",
-    "    o                  ",
-    "    x      | x!!x=     ",
-    "         x             ",
-    "                      x",
-    "                       ",
-    "                       ",
-    "                       ",
-    "               xxx     ",
-    "                       ",
-    "                       ",
-    "       xxx  |          ",
-    "                       ",
-    " @                     ",
-    "xxx                    ",
-    "                       "
-  ],
-  [
-    "   v         v",
-    "              ",
-    "         !o!  ",
-    "              ",
-    "              ",
-    "              ",
-    "              ",
-    "         xxx  ",
-    "          o   ",
-    "        =     ",
-    "  @           ",
-    "  xxxx        ",
-    "  |           ",
-    "      xxx    x",
-    "              ",
-    "          !   ",
-    "              ",
-    "              ",
-    " o       x    ",
-    " x      x     ",
-    "       x      ",
-    "      x       ",
-    "   xx         ",
-    "              "
-  ]
-];
 
 const actorDict = {
   "@": Player,
@@ -470,5 +341,11 @@ const actorDict = {
 };
 
 const parser = new LevelParser(actorDict);
-runGame(schemas, parser, DOMDisplay)
-  .then(() => alert('Вы выиграли приз!'));
+
+function onRejected(lvl) {
+  runGame(JSON.parse(lvl), parser, DOMDisplay).then(() => alert('Вы выиграли приз!'));
+}
+
+loadLevels().then(onRejected);
+
+
