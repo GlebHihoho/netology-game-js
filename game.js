@@ -202,8 +202,6 @@ class LevelParser {
   createActors(plan) {
     let actors = [];
 
-    // попробуйте использовать здесь 2 forEach, а ещё лучше reduce
-    // GLeb : пробовал так делать с самого начала, но что-то не пошло совсем
     for (let x = 0; x < plan.length; x++) {
       for (let y = 0; y < plan[x].length; y++) {
         let cell = this.symbol[plan[x][y]];
@@ -216,6 +214,7 @@ class LevelParser {
         }
       }
     }
+
     return actors;
   }
 
@@ -324,13 +323,6 @@ class Coin extends Actor {
     this.pos = this.getNextPosition(time);
   }
 }
-
-// если собрать монетку после столкновения с фаерболом, то уровень всё расно считается выигранным
-// Gleb : ну это фича такая)
-// Игорь: не
-// Gleb : но логика окончания уровня и уменьшением персонажа описана в файле app.js
-//        я же работаю в game.js.
-
 
 const actorDict = {
   "@": Player,
