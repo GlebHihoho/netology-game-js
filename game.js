@@ -141,10 +141,10 @@ class Level {
   }
 
   removeActor(actor) {
-    let findIndex = this.actors.findIndex(elem => elem === actor);
+    const index = this.actors.indexOf(actor);
 
-    if (findIndex !== 1) {
-      this.actors.splice(findIndex, 1);
+    if (index !== -1) {
+      this.actors.splice(index, 1);
     }
   }
 
