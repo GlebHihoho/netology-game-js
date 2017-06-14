@@ -334,10 +334,10 @@ const actorDict = {
 
 const parser = new LevelParser(actorDict);
 
-function onRejected(lvl) {
-  runGame(JSON.parse(lvl), parser, DOMDisplay).then(() => alert('Вы выиграли приз!'));
-}
-
-loadLevels().then(onRejected);
+loadLevels().then(
+  lvl => {
+    runGame(JSON.parse(lvl), parser, DOMDisplay).then(() => alert('Вы выиграли приз!'));
+  }
+);
 
 
