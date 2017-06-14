@@ -69,23 +69,23 @@ class Actor {
       throw new Error('actor не является Actor')
     }
 
-    if (!(actor !== this)) {
+    if (actor == this) {
       return false;
     }
 
-    if (!(actor.left < this.right)) {
+    if (actor.left >= this.right) {
       return false;
     }
 
-    if (!(actor.right > this.left)) {
+    if (actor.right <= this.left) {
       return false;
     }
 
-    if (!(actor.top < this.bottom)) {
+    if (actor.top >= this.bottom) {
       return false;
     }
 
-    if (!(actor.bottom > this.top)) {
+    if (actor.bottom <= this.top) {
       return false;
     }
 
@@ -100,12 +100,7 @@ class Level {
     this.height = this.grid.length;
     this.status = null;
     this.finishDelay = 1;
-
-    if (this.height !== 0) {
-      this.width = Math.max(...this.grid.map(element => element.length));
-    } else {
-      this.width = 0;
-    }
+    this.width = Math.max(0, ...this.grid.map(element => element.length));
   }
 
   get player() {
@@ -148,7 +143,9 @@ class Level {
   removeActor(actor) {
     let findIndex = this.actors.findIndex(elem => elem === actor);
 
-    this.actors.splice(findIndex, 1);
+    if (findIndex !== 1) {
+      this.actors.splice(findIndex, 1);
+    }
   }
 
   noMoreActors(type) {
@@ -176,7 +173,7 @@ class Level {
 
 class LevelParser {
   constructor(symbol = {}) {
-    this.symbol = symbol;
+    this.symbol = Object.assign({}, symbol);
   }
 
   actorFromSymbol(str) {
@@ -194,10 +191,6 @@ class LevelParser {
   }
 
   createGrid(plan) {
-    if (!plan.length) {
-      return [];
-    }
-
     return plan.map(line => {
       return line.split('').map(ch => this.obstacleFromSymbol(ch));
     })
@@ -206,12 +199,12 @@ class LevelParser {
   createActors(plan) {
     let actors = [];
 
-    for (let x = 0; x < plan.length; x++) {
-      for (let y = 0; y < plan[x].length; y++) {
-        let cell = this.symbol[plan[x][y]];
+    for (let y = 0; y < plan.length; y++) {
+      for (let x = 0; x < plan[y].length; x++) {
+        let cell = this.symbol[plan[y][x]];
 
         if (typeof cell === 'function') {
-          let actor = new cell(new Vector(y, x));
+          let actor = new cell(new Vector(x, y));
           if (actor instanceof Actor) {
             actors.push(actor);
           }
