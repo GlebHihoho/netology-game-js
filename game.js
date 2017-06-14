@@ -177,9 +177,7 @@ class LevelParser {
   }
 
   actorFromSymbol(str) {
-    if (this.symbol) {
-      return this.symbol[str];
-    }
+    return this.symbol[str];
   }
 
   obstacleFromSymbol(str) {
