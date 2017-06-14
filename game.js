@@ -156,6 +156,10 @@ class Level {
   }
 
   playerTouched(type, actor) {
+    if (this.status !== null) {
+      return;
+    }
+
     if (type === 'lava' || type === 'fireball') {
       this.status = 'lost';
     }
